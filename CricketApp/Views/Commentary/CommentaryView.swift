@@ -8,9 +8,14 @@ struct CommentaryView: View {
         static let latest = "commentary-latest"
     }
 
+    /// Cap native ads in commentary so scroll stays smooth (AdMob request volume).
+    private static let maxNativeAdsAfterOvers = 5
+
     @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject private var adsManager: AdsManager
     @ObservedObject private var lifecycleManager = AppLifecycleManager.shared
     @StateObject private var viewModel: CommentaryViewModel
+    @State private var didRecordInterstitialTap = false
 
     init(fixtureId: Int, inningNumber: Int, isLive: Bool, repository: CommentaryRepositoryProtocol) {
         _viewModel = StateObject(
@@ -44,8 +49,15 @@ struct CommentaryView: View {
                     } else if viewModel.overGroups.isEmpty {
                         EmptyState(title: "No commentary", message: "Ball-by-ball updates will appear during live play.", systemImage: "text.bubble")
                     } else {
-                        ForEach(viewModel.overGroups) { group in
+                        ForEach(Array(viewModel.overGroups.enumerated()), id: \.element.id) { index, group in
                             overGroup(group)
+
+                            if index < Self.maxNativeAdsAfterOvers {
+                                NativeAdFeedCard(
+                                    placement: .matchDetailsNative,
+                                    slotKey: "commentary-\(viewModel.fixtureId)-over-\(group.overNumber)"
+                                )
+                            }
                         }
                     }
                 }
@@ -54,6 +66,7 @@ struct CommentaryView: View {
             .background(palette.background)
             .navigationTitle("Commentary")
             .navigationBarTitleDisplayMode(.inline)
+            .hidesBottomTabBar()
             .toolbar {
                 Button {
                     viewModel.isPinnedToLatest = true
@@ -83,6 +96,11 @@ struct CommentaryView: View {
                     proxy.scrollTo(ScrollAnchor.latest, anchor: .top)
                 }
             }
+            .task {
+                guard didRecordInterstitialTap == false else { return }
+                didRecordInterstitialTap = true
+                await adsManager.recordInterstitialTap(.commentary)
+            }
         }
     }
 
@@ -111,4 +129,5 @@ struct CommentaryView: View {
             repository: DependencyContainer.preview().commentaryRepository
         )
     }
+    .environmentObject(DependencyContainer.preview().adsManager)
 }

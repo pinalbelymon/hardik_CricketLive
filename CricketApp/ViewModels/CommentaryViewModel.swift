@@ -10,7 +10,7 @@ final class CommentaryViewModel: ObservableObject {
     @Published private(set) var lastUpdated: Date?
     @Published var isPinnedToLatest = true
 
-    private let fixtureId: Int
+    let fixtureId: Int
     private let inningNumber: Int
     private let isLive: Bool
     private let repository: CommentaryRepositoryProtocol
@@ -67,6 +67,12 @@ final class CommentaryViewModel: ObservableObject {
 
     func handleAppLifecycle(isActive: Bool) {
         guard isScreenVisible else { return }
+        // Finished / non-live matches: never poll or auto-refresh on resume.
+        guard isLive else {
+            pollingTask?.cancel()
+            pollingTask = nil
+            return
+        }
 
         if isActive {
             Task { await load(force: true) }
@@ -117,15 +123,28 @@ final class CommentaryViewModel: ObservableObject {
     }
 
     private func startPollingIfNeeded() {
-        guard isLive, lifecycleManager.isActive, isScreenVisible else { return }
+        guard isLive, lifecycleManager.isActive, isScreenVisible else {
+            pollingTask?.cancel()
+            pollingTask = nil
+            return
+        }
 
         pollingTask?.cancel()
         pollingTask = Task.detached(priority: .utility) { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 5_000_000_000)
                 guard !Task.isCancelled else { return }
+                guard await self?.isLive == true else {
+                    await self?.stopPolling()
+                    return
+                }
                 await self?.load(force: false)
             }
         }
+    }
+
+    private func stopPolling() {
+        pollingTask?.cancel()
+        pollingTask = nil
     }
 }

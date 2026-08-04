@@ -9,14 +9,16 @@ struct SettingsView: View {
     @Environment(\.requestReview) private var requestReview
     @Environment(\.openURL) private var openURL
     @EnvironmentObject private var themeManager: ThemeManager
+    @EnvironmentObject private var purchaseManager: PurchaseManager
     @StateObject private var viewModel: SettingsViewModel
+    @State private var showPaywall = false
 
     init(container: DependencyContainer) {
         _viewModel = StateObject(
             wrappedValue: SettingsViewModel(
                 settingsRepository: container.settingsRepository,
                 updateRepository: container.updateRepository,
-                adsRepository: container.adsRepository
+                adsManager: container.adsManager
             )
         )
     }
@@ -28,6 +30,8 @@ struct SettingsView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: Spacing.xLarge) {
                     SettingsHeroHeader(version: viewModel.appVersion)
+
+                    premiumSection
 
                     appearanceSection
 
@@ -72,7 +76,7 @@ struct SettingsView: View {
                         SettingsGroupCard {
                             SettingsLinkRow(
                                 title: "Privacy Policy",
-                                subtitle: nil,//"How your data is handled"
+                                subtitle: nil,
                                 systemImage: "hand.raised.fill",
                                 url: viewModel.privacyPolicyURL
                             )
@@ -81,7 +85,7 @@ struct SettingsView: View {
 
                             SettingsLinkRow(
                                 title: "Terms of Service",
-                                subtitle: nil ,//"Usage terms and conditions"
+                                subtitle: nil,
                                 systemImage: "doc.plaintext.fill",
                                 url: viewModel.termsURL
                             )
@@ -104,11 +108,91 @@ struct SettingsView: View {
             .sheet(item: $viewModel.availableUpdate) { update in
                 UpdateSheet(update: update)
             }
+            .sheet(isPresented: $showPaywall) {
+                PremiumPaywallView(purchaseManager: purchaseManager)
+            }
             .alert("App Update", isPresented: $viewModel.showUpdateAlert) {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(viewModel.updateAlertMessage ?? "")
             }
+        }
+    }
+
+    private var premiumSection: some View {
+        let palette = Theme.palette(for: colorScheme)
+
+        return VStack(alignment: .leading, spacing: Spacing.medium) {
+            SectionHeader("Premium", subtitle: "Remove ads forever", systemImage: "crown.fill")
+
+            Button {
+                showPaywall = true
+            } label: {
+                HStack(spacing: Spacing.large) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(hex: 0xF2D56B), Color(hex: 0xC9A227)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 52, height: 52)
+
+                        Image(systemName: purchaseManager.isPremium ? "checkmark.seal.fill" : "crown.fill")
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(Color(hex: 0x1A1205))
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(purchaseManager.isPremium ? "Premium Active" : "Go Premium")
+                            .font(Typography.headline)
+                            .foregroundStyle(palette.text)
+
+                        Text(
+                            purchaseManager.isPremium
+                            ? "Ads removed on this Apple ID"
+                            : "Lifetime unlock · One-time purchase"
+                        )
+                        .font(Typography.caption)
+                        .foregroundStyle(palette.secondaryText)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    if purchaseManager.isPremium {
+                        Text("Active")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(palette.success)
+                            .padding(.horizontal, Spacing.small)
+                            .padding(.vertical, 4)
+                            .background(palette.success.opacity(0.14), in: Capsule())
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(palette.secondaryText)
+                    }
+                }
+                .padding(Spacing.large)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(hex: 0xC9A227).opacity(colorScheme == .dark ? 0.18 : 0.12),
+                            palette.card
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    in: RoundedRectangle(cornerRadius: CornerRadius.xLarge, style: .continuous)
+                )
+                .overlay {
+                    RoundedRectangle(cornerRadius: CornerRadius.xLarge, style: .continuous)
+                        .stroke(Color(hex: 0xC9A227).opacity(0.35), lineWidth: 1)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(purchaseManager.isPremium ? "Premium is active" : "Go Premium, remove ads forever")
         }
     }
 
@@ -397,4 +481,5 @@ private struct SettingsDivider: View {
 #Preview {
     SettingsView(container: .preview())
         .environmentObject(ThemeManager())
+        .environmentObject(DependencyContainer.preview().purchaseManager)
 }

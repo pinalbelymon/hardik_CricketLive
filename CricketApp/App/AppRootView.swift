@@ -32,6 +32,7 @@ struct AppRootView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.scenePhase) private var scenePhase
+    @EnvironmentObject private var adsManager: AdsManager
     @ObservedObject private var lifecycleManager = AppLifecycleManager.shared
     @StateObject private var reachabilityMonitor = ReachabilityMonitor()
     @State private var selectedSection: AppSection? = .home
@@ -55,6 +56,16 @@ struct AppRootView: View {
         }
         .onChange(of: scenePhase) { _, phase in
             lifecycleManager.handleScenePhase(phase)
+            switch phase {
+            case .background:
+                adsManager.handleAppDidEnterBackground()
+            case .active:
+                Task {
+                    _ = await adsManager.handleAppOpenOpportunity(isColdStart: false)
+                }
+            default:
+                break
+            }
         }
     }
 
@@ -106,4 +117,6 @@ struct AppRootView: View {
 #Preview {
     AppRootView(container: .preview())
         .environmentObject(ThemeManager())
+        .environmentObject(DependencyContainer.preview().adsManager)
+        .environmentObject(DependencyContainer.preview().purchaseManager)
 }

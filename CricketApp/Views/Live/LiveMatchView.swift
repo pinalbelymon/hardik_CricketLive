@@ -26,6 +26,11 @@ struct LiveMatchView: View {
 
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Spacing.xLarge) {
+                NativeAdFeedCard(
+                    placement: .matchDetailsNative,
+                    slotKey: "live-match-top-\(viewModel.match.id)"
+                )
+
                 if viewModel.state.isLoading, viewModel.scorecard == nil {
                     LoadingView()
                 } else {

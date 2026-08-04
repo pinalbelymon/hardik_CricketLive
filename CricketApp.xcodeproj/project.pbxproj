@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		56B1344B3021AB6500B80232 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 56B1344A3021AB6500B80232 /* GoogleMobileAds */; };
+		56B134603021C39B00B80232 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 56B1345F3021C39B00B80232 /* FirebaseCore */; };
+		56B134623021C39B00B80232 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 56B134613021C39B00B80232 /* FirebaseDatabase */; };
+		56B134643021C39B00B80232 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 56B134633021C39B00B80232 /* FirebaseFirestore */; };
 		56D2D084300F9AED0090333F /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 56D2D083300F9AED0090333F /* Lottie */; };
 /* End PBXBuildFile section */
 
@@ -23,6 +27,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56B1344B3021AB6500B80232 /* GoogleMobileAds in Frameworks */,
+				56B134603021C39B00B80232 /* FirebaseCore in Frameworks */,
+				56B134623021C39B00B80232 /* FirebaseDatabase in Frameworks */,
+				56B134643021C39B00B80232 /* FirebaseFirestore in Frameworks */,
 				56D2D084300F9AED0090333F /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -67,6 +75,10 @@
 			name = CricketApp;
 			packageProductDependencies = (
 				56D2D083300F9AED0090333F /* Lottie */,
+				56B1344A3021AB6500B80232 /* GoogleMobileAds */,
+				56B1345F3021C39B00B80232 /* FirebaseCore */,
+				56B134613021C39B00B80232 /* FirebaseDatabase */,
+				56B134633021C39B00B80232 /* FirebaseFirestore */,
 			);
 			productName = CricketApp;
 			productReference = 10A000000000000000000001 /* CricketApp.app */;
@@ -99,6 +111,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				56D2D082300F9AED0090333F /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				56B134493021AB6500B80232 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				56B1345E3021C39B00B80232 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = 10A000000000000000000005 /* Products */;
 			projectDirPath = "";
@@ -263,7 +277,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cricpluse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -293,7 +307,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cricpluse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -330,6 +344,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		56B134493021AB6500B80232 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 13.7.0;
+			};
+		};
+		56B1345E3021C39B00B80232 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.17.0;
+			};
+		};
 		56D2D082300F9AED0090333F /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
@@ -341,6 +371,26 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		56B1344A3021AB6500B80232 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 56B134493021AB6500B80232 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
+		56B1345F3021C39B00B80232 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 56B1345E3021C39B00B80232 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		56B134613021C39B00B80232 /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 56B1345E3021C39B00B80232 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
+		};
+		56B134633021C39B00B80232 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 56B1345E3021C39B00B80232 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
 		56D2D083300F9AED0090333F /* Lottie */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 56D2D082300F9AED0090333F /* XCRemoteSwiftPackageReference "lottie-ios" */;

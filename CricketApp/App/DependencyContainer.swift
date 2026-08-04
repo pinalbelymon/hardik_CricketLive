@@ -3,6 +3,7 @@ import Foundation
 // MARK: - Dependency Container
 
 /// Lightweight dependency graph for production services and previews.
+@MainActor
 struct DependencyContainer {
     let fixturesRepository: FixturesRepositoryProtocol
     let scorecardRepository: ScorecardRepositoryProtocol
@@ -11,6 +12,8 @@ struct DependencyContainer {
     let settingsRepository: SettingsRepositoryProtocol
     let updateRepository: UpdateRepositoryProtocol
     let adsRepository: AdsRepositoryProtocol
+    let purchaseManager: PurchaseManager
+    let adsManager: AdsManager
 
     static func live() -> DependencyContainer {
         let apiClient = APIClient()
@@ -18,6 +21,15 @@ struct DependencyContainer {
         let rankingsService = RankingsService(apiClient: apiClient)
         let settingsRepository = SettingsRepository()
         let updateService = AppUpdateService(apiClient: apiClient)
+        let adsRepository = AdsRepository(
+            configService: FirestoreAdConfigService(),
+            mobileAdsService: MobileAdsService()
+        )
+        let purchaseManager = PurchaseManager()
+        let adsManager = AdsManager(
+            adsRepository: adsRepository,
+            purchaseManager: purchaseManager
+        )
 
         return DependencyContainer(
             fixturesRepository: FixturesRepository(cricketService: cricketService),
@@ -26,7 +38,9 @@ struct DependencyContainer {
             rankingsRepository: RankingsRepository(service: rankingsService),
             settingsRepository: settingsRepository,
             updateRepository: UpdateRepository(service: updateService, settingsRepository: settingsRepository),
-            adsRepository: AdsRepository(configService: FirestoreAdConfigService(), mobileAdsService: MobileAdsService())
+            adsRepository: adsRepository,
+            purchaseManager: purchaseManager,
+            adsManager: adsManager
         )
     }
 
@@ -36,6 +50,8 @@ struct DependencyContainer {
         let commentaryRepository = PreviewCommentaryRepository()
         let rankingsRepository = PreviewRankingsRepository()
         let settingsRepository = SettingsRepository()
+        let adsRepository = PreviewAdsRepository()
+        let purchaseManager = PurchaseManager()
 
         return DependencyContainer(
             fixturesRepository: fixturesRepository,
@@ -44,7 +60,9 @@ struct DependencyContainer {
             rankingsRepository: rankingsRepository,
             settingsRepository: settingsRepository,
             updateRepository: PreviewUpdateRepository(),
-            adsRepository: PreviewAdsRepository()
+            adsRepository: adsRepository,
+            purchaseManager: purchaseManager,
+            adsManager: AdsManager(adsRepository: adsRepository, purchaseManager: purchaseManager)
         )
     }
 }
@@ -98,6 +116,6 @@ private final class PreviewAdsRepository: AdsRepositoryProtocol {
         .disabled
     }
 
-    func startAds() {
+    func startAds() async {
     }
 }

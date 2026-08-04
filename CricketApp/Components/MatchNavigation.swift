@@ -4,14 +4,25 @@ import SwiftUI
 
 /// Routes fixtures to live or match-detail screens based on API state.
 struct MatchDestinationView: View {
+    @EnvironmentObject private var adsManager: AdsManager
+    @State private var didRecordMatchCardTap = false
+
     let match: Match
     let container: DependencyContainer
 
     var body: some View {
-        if match.shouldPollLiveUpdates {
-            LiveMatchView(match: match, container: container)
-        } else {
-            MatchDetailsView(match: match, container: container)
+        Group {
+            if match.shouldPollLiveUpdates {
+                LiveMatchView(match: match, container: container)
+            } else {
+                MatchDetailsView(match: match, container: container)
+            }
+        }
+        .hidesBottomTabBar()
+        .task {
+            guard didRecordMatchCardTap == false else { return }
+            didRecordMatchCardTap = true
+            await adsManager.recordInterstitialTap(.matchCard)
         }
     }
 }

@@ -50,6 +50,19 @@ struct AppLaunchView: View {
             }
         }
         .animation(AppAnimation.spring, value: phase)
+        .environmentObject(container.adsManager)
+        .environmentObject(container.purchaseManager)
+        .task {
+            // Start early so cached / StoreKit entitlements are ready before ads bootstrap.
+            await container.purchaseManager.start()
+        }
+        .task(id: phase) {
+            guard phase == .main else { return }
+            await container.purchaseManager.refreshEntitlements()
+            await container.adsManager.prepare()
+            // Cold-start app open after splash → main (skipped for premium / policy).
+            _ = await container.adsManager.handleAppOpenOpportunity(isColdStart: true)
+        }
     }
 
     private func transitionFromSplash() {

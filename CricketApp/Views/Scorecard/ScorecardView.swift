@@ -9,9 +9,11 @@ struct ScorecardView: View {
     }
 
     @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject private var adsManager: AdsManager
     @ObservedObject private var lifecycleManager = AppLifecycleManager.shared
     @StateObject private var viewModel: ScorecardViewModel
     @State private var selectedInningsID: Int?
+    @State private var didRecordInterstitialTap = false
 
     init(fixtureId: Int, isLive: Bool, repository: ScorecardRepositoryProtocol) {
         _viewModel = StateObject(
@@ -31,6 +33,11 @@ struct ScorecardView: View {
                 LazyVStack(alignment: .leading, spacing: Spacing.xLarge) {
                     Color.clear.frame(height: 1).id(ScrollAnchor.top)
 
+//                    NativeAdFeedCard(
+//                        placement: .matchDetailsNative,
+//                        slotKey: "scorecard-top-\(viewModel.fixtureId)"
+//                    )
+
                     if viewModel.isLoading {
                         LoadingView()
                     } else if let errorMessage = viewModel.errorMessage, viewModel.scorecard == nil {
@@ -44,15 +51,22 @@ struct ScorecardView: View {
 
                         scorecardContent(scorecard)
                             .animation(AppAnimation.spring, value: viewModel.scoreSignature)
+
+//                        NativeAdFeedCard(
+//                            placement: .matchDetailsNative,
+//                            slotKey: "scorecard-bottom-\(viewModel.fixtureId)"
+//                        )
                     } else {
                         EmptyState(title: "No scorecard", message: "Scorecard data will appear when available.", systemImage: "tablecells")
                     }
                 }
                 .padding(Spacing.large)
+                .padding(.bottom, Spacing.medium)
             }
             .background(palette.background)
             .navigationTitle("Scorecard")
             .navigationBarTitleDisplayMode(.inline)
+            .hidesBottomTabBar()
             .toolbar {
                 Button {
                     withAnimation(AppAnimation.spring) {
@@ -74,6 +88,14 @@ struct ScorecardView: View {
             }
             .onChange(of: lifecycleManager.isActive) { _, isActive in
                 viewModel.handleAppLifecycle(isActive: isActive)
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                StickyBottomBannerAdView(placement: .scorecardBanner)
+            }
+            .task {
+                guard didRecordInterstitialTap == false else { return }
+                didRecordInterstitialTap = true
+                await adsManager.recordInterstitialTap(.scorecard)
             }
         }
     }
@@ -488,4 +510,5 @@ private struct PartnershipsCard: View {
             repository: DependencyContainer.preview().scorecardRepository
         )
     }
+    .environmentObject(DependencyContainer.preview().adsManager)
 }

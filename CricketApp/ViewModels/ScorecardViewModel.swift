@@ -10,7 +10,7 @@ final class ScorecardViewModel: ObservableObject {
     @Published private(set) var lastUpdated: Date?
     @Published private(set) var scoreSignature: String?
 
-    private let fixtureId: Int
+    let fixtureId: Int
     private let isLive: Bool
     private let repository: ScorecardRepositoryProtocol
     private let lifecycleManager: AppLifecycleManager
@@ -57,6 +57,11 @@ final class ScorecardViewModel: ObservableObject {
 
     func handleAppLifecycle(isActive: Bool) {
         guard isScreenVisible else { return }
+        guard isLive else {
+            pollingTask?.cancel()
+            pollingTask = nil
+            return
+        }
 
         if isActive {
             Task { await load(force: true) }
@@ -96,13 +101,24 @@ final class ScorecardViewModel: ObservableObject {
     }
 
     private func startPollingIfNeeded() {
-        guard isLive, lifecycleManager.isActive, isScreenVisible else { return }
+        guard isLive, lifecycleManager.isActive, isScreenVisible else {
+            pollingTask?.cancel()
+            pollingTask = nil
+            return
+        }
 
         pollingTask?.cancel()
         pollingTask = Task.detached(priority: .utility) { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 15_000_000_000)
                 guard !Task.isCancelled else { return }
+                guard await self?.isLive == true else {
+                    await MainActor.run {
+                        self?.pollingTask?.cancel()
+                        self?.pollingTask = nil
+                    }
+                    return
+                }
                 await self?.load(force: false)
             }
         }

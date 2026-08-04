@@ -24,6 +24,11 @@ struct MatchDetailsView: View {
 
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Spacing.xLarge) {
+                NativeAdFeedCard(
+                    placement: .matchDetailsNative,
+                    slotKey: "match-details-top-\(viewModel.match.id)"
+                )
+
                 if viewModel.state.isLoading {
                     LoadingView()
                 } else {

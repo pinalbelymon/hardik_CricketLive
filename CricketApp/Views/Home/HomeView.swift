@@ -5,6 +5,7 @@ import SwiftUI
 /// Premium dashboard combining live, fixtures, results, commentary, and rankings.
 struct HomeView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject private var adsManager: AdsManager
     @StateObject private var viewModel: HomeViewModel
 
     private let container: DependencyContainer
@@ -52,12 +53,13 @@ struct HomeView: View {
                                     systemImage: "magnifyingglass"
                                 )
                             } else {
-                                ForEach(viewModel.searchResults) { match in
-                                    NavigationLink(value: match) {
-                                        MatchCard(match: match)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
+                                MatchListWithNativeAds(
+                                    matches: viewModel.searchResults,
+                                    placement: .homeFeedNative,
+                                    sectionKey: "home-search",
+                                    everyMatchCards: adsManager.configuration.homeNativeAdEveryMatchCards,
+                                    maxAds: adsManager.configuration.homeNativeAdMaxPerSection
+                                )
                             }
                         } else {
                             SectionHeader("Featured Match", subtitle: "Live and high-interest fixtures", systemImage: "bolt.fill")
@@ -86,12 +88,13 @@ struct HomeView: View {
                             if viewModel.filteredUpcomingMatches.isEmpty {
                                 EmptyState(title: "No upcoming fixtures", message: "Upcoming matches will appear as soon as the API returns data.", systemImage: "calendar")
                             } else {
-                                ForEach(viewModel.filteredUpcomingMatches.prefix(4)) { match in
-                                    NavigationLink(value: match) {
-                                        MatchCard(match: match)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
+                                MatchListWithNativeAds(
+                                    matches: Array(viewModel.filteredUpcomingMatches.prefix(8)),
+                                    placement: .homeFeedNative,
+                                    sectionKey: "home-upcoming",
+                                    everyMatchCards: adsManager.configuration.homeNativeAdEveryMatchCards,
+                                    maxAds: adsManager.configuration.homeNativeAdMaxPerSection
+                                )
                             }
 
                             SectionHeader("Recent Results", subtitle: "Completed matches", systemImage: "checkmark.seal.fill")
@@ -99,17 +102,19 @@ struct HomeView: View {
                             if viewModel.recentResults.isEmpty {
                                 EmptyState(title: "No recent results", message: "Completed matches will appear here.", systemImage: "clock.badge.checkmark")
                             } else {
-                                ForEach(viewModel.recentResults.prefix(3)) { match in
-                                    NavigationLink(value: match) {
-                                        MatchCard(match: match)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
+                                MatchListWithNativeAds(
+                                    matches: Array(viewModel.recentResults.prefix(8)),
+                                    placement: .homeFeedNative,
+                                    sectionKey: "home-recent",
+                                    everyMatchCards: adsManager.configuration.homeNativeAdEveryMatchCards,
+                                    maxAds: adsManager.configuration.homeNativeAdMaxPerSection
+                                )
                             }
                         }
                     }
                 }
                 .padding(Spacing.large)
+                .padding(.bottom, 140)
             }
             .scrollIndicators(.hidden)
             .background(palette.background)
@@ -180,4 +185,5 @@ private struct QuickNavigationTile: View {
 #Preview {
     HomeView(container: .preview())
         .environmentObject(ThemeManager())
+        .environmentObject(DependencyContainer.preview().adsManager)
 }

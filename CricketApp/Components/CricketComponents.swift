@@ -1,8 +1,4 @@
 import SwiftUI
-#if canImport(GoogleMobileAds) && canImport(UIKit)
-import GoogleMobileAds
-import UIKit
-#endif
 
 // MARK: - Glass Card
 
@@ -855,43 +851,18 @@ struct UpdateSheet: View {
     }
 }
 
-// MARK: - Banner View
+// MARK: - Legacy Ad Placeholders
 
-#if canImport(GoogleMobileAds) && canImport(UIKit)
-/// Google Mobile Ads banner bridge.
-struct BannerView: UIViewRepresentable {
-    let adUnitId: String
-
-    func makeUIView(context: Context) -> GADBannerView {
-        let banner = GADBannerView(adSize: GADAdSizeBanner)
-        banner.adUnitID = adUnitId
-        banner.rootViewController = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap(\.windows)
-            .first { $0.isKeyWindow }?
-            .rootViewController
-        banner.load(GADRequest())
-        return banner
-    }
-
-    func updateUIView(_ uiView: GADBannerView, context: Context) {
-    }
-}
-#else
-/// No-op banner placeholder when Google Mobile Ads is not linked.
-struct BannerView: View {
+/// Prefer `AdMobBannerAdView(placement:)` / `AdMobNativeAdView(placement:)` for new call sites.
+struct LegacyBannerAdPlaceholder: View {
     let adUnitId: String
 
     var body: some View {
         EmptyView()
     }
 }
-#endif
 
-// MARK: - Native Ad View
-
-/// Native ad surface placeholder. It renders only when a real SDK-backed implementation is supplied.
-struct NativeAdView: View {
+struct LegacyNativeAdPlaceholder: View {
     let adUnitId: String
 
     var body: some View {

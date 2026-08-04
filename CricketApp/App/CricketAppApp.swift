@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import Firebase
 
 // MARK: - App Entry
 
@@ -10,6 +11,7 @@ struct CricketAppApp: App {
     private let container = DependencyContainer.live()
 
     init() {
+        FirebaseBootstrap.configureIfNeeded()
         ImageCache.configureSharedCache()
     }
 

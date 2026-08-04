@@ -12,6 +12,8 @@ This project intentionally uses only the APIs requested in the brief:
 - Firebase Firestore for remote ad configuration when the SDK is linked.
 - Google Mobile Ads SDK surfaces when the SDK is linked.
 
+See [docs/FIREBASE_AD_CONFIG.md](docs/FIREBASE_AD_CONFIG.md) for the Firestore document shape, fallbacks, and console setup steps.
+
 SportsTiger APIs, models, and networking are intentionally absent.
 
 ## Build

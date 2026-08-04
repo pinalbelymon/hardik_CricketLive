@@ -113,11 +113,21 @@ struct Match: Identifiable, Hashable, Sendable, Codable {
     }
 
     var shouldPollLiveUpdates: Bool {
+        // Finished / abandoned / upcoming matches must never poll.
+        guard isCompleted == false,
+              isTerminalStatus == false,
+              state != .completed,
+              state != .upcoming else {
+            return false
+        }
+
+        if isLive || state == .live { return true }
+
         let normalized = gameStatus.lowercased()
-        let statusIndicatesLive = normalized.contains("live")
-            || normalized.contains("progress")
-            || normalized.contains("innings")
-        return (isLive || statusIndicatesLive) && !isCompleted && !isTerminalStatus
+        // Avoid bare "innings"/"progress" — completed summaries often include those words.
+        return normalized.contains("live")
+            || normalized.contains("in progress")
+            || normalized.contains("inprogress")
     }
 
     /// Whether the match should display live UI treatment.
@@ -132,6 +142,8 @@ struct Match: Identifiable, Hashable, Sendable, Codable {
             || normalized.contains("abandon")
             || normalized.contains("cancel")
             || normalized.contains("no result")
+            || normalized.contains("finished")
+            || normalized.contains("ended")
     }
 }
 

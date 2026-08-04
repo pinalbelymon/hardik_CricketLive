@@ -66,6 +66,7 @@ struct LiveMatchesView: View {
         }
         .background(palette.background)
         .navigationTitle("Live Matches")
+        .hidesBottomTabBar()
         .refreshable {
             await viewModel.load(isRefreshing: true)
         }

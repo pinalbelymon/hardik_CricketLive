@@ -5,6 +5,7 @@ import SwiftUI
 /// Calendar-led fixtures screen for today, upcoming, and previous matches.
 struct FixturesView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject private var adsManager: AdsManager
     @StateObject private var viewModel: FixturesViewModel
 
     private let container: DependencyContainer
@@ -44,17 +45,19 @@ struct FixturesView: View {
                             VStack(alignment: .leading, spacing: Spacing.medium) {
                                 SectionHeader(group.title, systemImage: "calendar")
 
-                                ForEach(group.matches) { match in
-                                    NavigationLink(value: match) {
-                                        MatchCard(match: match)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
+                                MatchListWithNativeAds(
+                                    matches: group.matches,
+                                    placement: .fixturesFeedNative,
+                                    sectionKey: "fixtures-\(viewModel.selectedFilter.rawValue)-\(group.id)",
+                                    everyMatchCards: adsManager.configuration.fixturesNativeAdEveryMatchCards,
+                                    maxAds: adsManager.configuration.fixturesNativeAdMaxPerSection
+                                )
                             }
                         }
                     }
                 }
                 .padding(Spacing.large)
+                .padding(.bottom, 140)
             }
             .background(palette.background)
             .navigationTitle("Fixtures")
@@ -97,4 +100,5 @@ struct FixturesView: View {
 
 #Preview {
     FixturesView(container: .preview())
+        .environmentObject(DependencyContainer.preview().adsManager)
 }

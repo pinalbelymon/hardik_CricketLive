@@ -5,7 +5,7 @@ import Foundation
 /// Provides ad configuration and SDK bootstrapping.
 protocol AdsRepositoryProtocol: Sendable {
     func loadConfiguration() async -> AdConfiguration
-    func startAds()
+    func startAds() async
 }
 
 // MARK: - Ads Repository
@@ -23,11 +23,18 @@ final class AdsRepository: AdsRepositoryProtocol {
         do {
             return try await configService.loadConfiguration()
         } catch {
+            // Prefer any prior-day cache, then DEBUG/Release fallback.
+            if let cached = await AdConfigurationDailyCache.shared.latestConfiguration() {
+                return cached
+            }
+            if let firestoreService = configService as? FirestoreAdConfigService {
+                return firestoreService.fallbackConfiguration()
+            }
             return .disabled
         }
     }
 
-    func startAds() {
-        mobileAdsService.start()
+    func startAds() async {
+        await mobileAdsService.start()
     }
 }

@@ -16,11 +16,15 @@ final class SettingsViewModel: ObservableObject {
     let termsURL: URL
 
     private let updateRepository: UpdateRepositoryProtocol
-    private let adsRepository: AdsRepositoryProtocol
+    private let adsManager: AdsManager
 
-    init(settingsRepository: SettingsRepositoryProtocol, updateRepository: UpdateRepositoryProtocol, adsRepository: AdsRepositoryProtocol) {
+    init(
+        settingsRepository: SettingsRepositoryProtocol,
+        updateRepository: UpdateRepositoryProtocol,
+        adsManager: AdsManager
+    ) {
         self.updateRepository = updateRepository
-        self.adsRepository = adsRepository
+        self.adsManager = adsManager
         appVersion = settingsRepository.appVersion
         let appStoreURL = "https://apps.apple.com/app/\(AppConstants.appId)"
 
@@ -30,12 +34,17 @@ final class SettingsViewModel: ObservableObject {
         Download now:
         \(appStoreURL)
         """
-        privacyPolicyURL = URL(string: "https://belymoninfotech.com/app/cricplus/privacypolicy.html") ?? AppConstants.API.iTunesLookupURL
-        termsURL = URL(string: "https://belymoninfotech.com/app/cricplus/termsofuse.html") ?? AppConstants.API.iTunesLookupURL
+        privacyPolicyURL = AppConstants.IAP.privacyPolicyURL
+        termsURL = AppConstants.IAP.termsOfUseURL
     }
 
     func load() async {
-        adsRepository.startAds()
+        // Idempotent — primary bootstrap runs at launch.
+        await adsManager.prepare()
+    }
+
+    func openAdsPrivacyOptions() async {
+        await adsManager.presentPrivacyOptionsIfNeeded()
     }
 
     func checkForUpdate() async {

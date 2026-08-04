@@ -9,8 +9,10 @@ struct OversView: View {
     }
 
     @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject private var adsManager: AdsManager
     @ObservedObject private var lifecycleManager = AppLifecycleManager.shared
     @StateObject private var viewModel: CommentaryViewModel
+    @State private var didRecordInterstitialTap = false
 
     init(fixtureId: Int, inningNumber: Int, isLive: Bool, repository: CommentaryRepositoryProtocol) {
         _viewModel = StateObject(
@@ -25,6 +27,8 @@ struct OversView: View {
 
     var body: some View {
         let palette = Theme.palette(for: colorScheme)
+        let nativeInterval = adsManager.configuration.oversNativeAdEveryCards
+        let maxNativeAds = adsManager.configuration.oversNativeAdMax
 
         ScrollViewReader { proxy in
             ScrollView {
@@ -44,16 +48,28 @@ struct OversView: View {
                     } else {
                         SectionHeader("Over-by-Over", subtitle: "Quick delivery scores", systemImage: "circle.grid.3x3.fill")
 
-                        ForEach(viewModel.overGroups) { group in
+                        ForEach(Array(viewModel.overGroups.enumerated()), id: \.element.id) { index, group in
                             OverSummaryCard(group: group)
+
+                            let cardNumber = index + 1
+                            if nativeInterval > 0,
+                               cardNumber.isMultiple(of: nativeInterval),
+                               cardNumber / nativeInterval <= maxNativeAds {
+                                NativeAdFeedCard(
+                                    placement: .matchDetailsNative,
+                                    slotKey: "overs-\(viewModel.fixtureId)-after-\(group.overNumber)"
+                                )
+                            }
                         }
                     }
                 }
                 .padding(Spacing.large)
+                .padding(.bottom, Spacing.medium + 80)
             }
             .background(palette.background)
             .navigationTitle("Overs")
             .navigationBarTitleDisplayMode(.inline)
+            .hidesBottomTabBar()
             .toolbar {
                 Button {
                     withAnimation(AppAnimation.spring) {
@@ -75,6 +91,14 @@ struct OversView: View {
             }
             .onChange(of: lifecycleManager.isActive) { _, isActive in
                 viewModel.handleAppLifecycle(isActive: isActive)
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                StickyBottomBannerAdView(placement: .oversBanner)
+            }
+            .task {
+                guard didRecordInterstitialTap == false else { return }
+                didRecordInterstitialTap = true
+                await adsManager.recordInterstitialTap(.overs)
             }
         }
     }
@@ -218,4 +242,5 @@ private struct OverDeliveryPill: View {
             repository: DependencyContainer.preview().commentaryRepository
         )
     }
+    .environmentObject(DependencyContainer.preview().adsManager)
 }
